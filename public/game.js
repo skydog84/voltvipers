@@ -235,6 +235,7 @@ function onDeath(m) {
 function showHud(on) {
   for (const id of ['hudScore', 'hudCoins', 'leader', 'prizeTicker']) $(id).style.display = on ? '' : 'none';
   mmCanvas.classList.toggle('hidden', !on);
+  $('boostBtn').style.display = (on && IS_TOUCH) ? 'flex' : 'none';
 }
 function renderLeaderboard() {
   const mine = snakesById.get(myId);
@@ -459,6 +460,12 @@ requestAnimationFrame(draw);
 addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 addEventListener('mousedown', () => { if (playing) boosting = true; });
 addEventListener('mouseup', () => boosting = false);
+/* mobile boost button: hold to boost */
+const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const boostBtn = $('boostBtn');
+boostBtn.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); if (playing) { boosting = true; boostBtn.classList.add('pressed'); } }, { passive: false });
+boostBtn.addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); boosting = false; boostBtn.classList.remove('pressed'); }, { passive: false });
+boostBtn.addEventListener('touchcancel', () => { boosting = false; boostBtn.classList.remove('pressed'); });
 addEventListener('keydown', e => { if (e.code === 'Space') { boosting = true; e.preventDefault(); } });
 addEventListener('keyup', e => { if (e.code === 'Space') boosting = false; });
 addEventListener('touchmove', e => { const t = e.touches[0]; mouseX = t.clientX; mouseY = t.clientY; }, { passive: true });

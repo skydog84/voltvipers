@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>VoltVipers ⚡ Neon Snake Arena</title>
 <meta name="description" content="VoltVipers — the neon multiplayer snake arena. Eat, grow, outplay. Top 10 players every month win real prizes.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#05060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VoltVipers">
+<meta property="og:title" content="VoltVipers ⚡ Neon Snake Arena">
+<meta property="og:description" content="Eat orbs. Grow huge. Cut off other vipers. Top 10 most-active players every month split the cash prize pool.">
+<meta property="og:image" content="https://voltvipers.onrender.com/og-image.png">
+<meta property="og:url" content="https://voltvipers.onrender.com">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="VoltVipers ⚡ Neon Snake Arena">
+<meta name="twitter:description" content="Eat orbs. Grow huge. Cut off other vipers. Top 10 monthly players split the cash prize pool.">
+<meta name="twitter:image" content="https://voltvipers.onrender.com/og-image.png">
 <style>
   :root {
     --bg: #05060f;
@@ -28,6 +45,12 @@
   #hudScore { left: 18px; bottom: 16px; font-size: 22px; font-weight: 800; letter-spacing: 1px;
     text-shadow: 0 0 12px var(--neon); }
   #hudScore small { display:block; font-size: 11px; font-weight: 400; color: var(--dim); letter-spacing: 2px; }
+  #boostBtn { position: fixed; right: 22px; bottom: 22px; z-index: 6; width: 84px; height: 84px;
+    border-radius: 50%; border: 2px solid var(--neon); background: rgba(10,255,157,.12);
+    color: var(--neon); font-size: 34px; display: none; align-items: center; justify-content: center;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+    touch-action: none; box-shadow: 0 0 18px rgba(10,255,157,.35); }
+  #boostBtn.pressed { background: rgba(10,255,157,.35); box-shadow: 0 0 34px rgba(10,255,157,.7); }
   #hudCoins { right: 18px; top: 14px; font-size: 16px; font-weight: 700; color: var(--gold);
     text-shadow: 0 0 10px rgba(255,215,0,.6); pointer-events: auto; cursor: pointer;
     background: var(--panel); border: 1px solid rgba(255,215,0,.3); border-radius: 20px; padding: 6px 14px; }
@@ -148,6 +171,7 @@
 <div class="hud" id="combo"></div>
 <div class="hud" id="announce"></div>
 <div class="hud" id="leader" style="display:none"><h3>⚡ LEADERBOARD</h3><div id="leaderRows"></div></div>
+<button id="boostBtn" aria-label="Boost">⚡</button>
 <div class="hud" id="feed"></div>
 <div id="prizeTicker" onclick="openPrizes()" style="display:none">🏆 MONTHLY PRIZE POOL — TOP 10 GET PAID</div>
 <div id="toast"></div>
