@@ -1,0 +1,13 @@
+{
+  "name": "voltvipers",
+  "version": "1.0.0",
+  "description": "VoltVipers - neon multiplayer snake arena (zero dependencies)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
