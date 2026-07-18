@@ -366,6 +366,15 @@ async function handleApi(req, res, u) {
       reviveCost: REVIVE_COST,
       boostPackCost: BOOST_PACK_COST,
       stripeMode: STRIPE_KEY ? (STRIPE_KEY.startsWith('sk_live') ? 'live' : 'test') : 'simulated',
+      // Rewarded ads (AppLixir). Ships dark: empty key = no ad UI shown client-side.
+      ads: {
+        key: process.env.APPLIXIR_API_KEY || '',
+        zone: process.env.APPLIXIR_ZONE_ID || '',
+        account: process.env.APPLIXIR_ACCOUNT_ID || '',
+        script: process.env.APPLIXIR_SCRIPT_URL || 'https://cdn.applixir.com/applixir.app.v6.0.1.js',
+        reward: parseInt(process.env.AD_REWARD_COINS || '30', 10),
+        dailyCap: parseInt(process.env.AD_DAILY_CAP || '5', 10),
+      },
     });
   }
   if (u.pathname === '/api/prizes') {
