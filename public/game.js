@@ -706,6 +706,87 @@ async function loadPrizes() {
   setTimeout(() => { toast(`🔥 Day ${streak} streak — +${reward} 🪙!`, 4000); sStreak(); }, 1500);
 })();
 
+/* ================= rewarded ads (AppLixir adapter — ships dark) =================
+   Activates only when the server exposes CONFIG.ads.key (set APPLIXIR_API_KEY on the
+   host). Hidden inside the native iOS shell (rewarded web ads there would violate
+   App Store policy expectations — the shell gets AdMob later instead). Tolerant of
+   both AppLixir SDK generations; any failure degrades to a "no ad available" toast. */
+const adState = {
+  get today() { const d = new Date(); return d.toISOString().slice(0, 10); },
+  get watched() {
+    try { const j = JSON.parse(localStorage.getItem('vv_ads') || '{}'); return j.d === this.today ? (j.n || 0) : 0; } catch (e) { return 0; }
+  },
+  bump() { localStorage.setItem('vv_ads', JSON.stringify({ d: this.today, n: this.watched + 1 })); },
+};
+let adBusy = false, adSdkLoading = null;
+function adsEnabled() { return !!(CONFIG.ads && CONFIG.ads.key) && !NATIVE_SHELL; }
+function adCapLeft() { return Math.max(0, (CONFIG.ads?.dailyCap ?? 5) - adState.watched); }
+function refreshAdButtons() {
+  const on = adsEnabled() && adCapLeft() > 0;
+  $('adRowMenu').classList.toggle('hidden', !on);
+  $('adRowDeath').classList.toggle('hidden', !on);
+  if (on) for (const el of document.querySelectorAll('.adRewardLbl')) el.textContent = '+' + (CONFIG.ads.reward || 30);
+}
+function loadAdSdk() {
+  if (window.invokeApplixirVideoUnit || window.initializeAndOpenPlayer) return Promise.resolve();
+  if (adSdkLoading) return adSdkLoading;
+  adSdkLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = CONFIG.ads.script; s.async = true;
+    s.onload = resolve; s.onerror = () => { adSdkLoading = null; reject(new Error('sdk load failed')); };
+    document.head.appendChild(s);
+  });
+  return adSdkLoading;
+}
+function finishAd(rewarded) {
+  $('applixir-overlay').classList.add('hidden');
+  adBusy = false;
+  if (rewarded) {
+    const reward = CONFIG.ads.reward || 30;
+    save.coins = save.coins + reward;
+    adState.bump(); sBuy();
+    toast(`📺 +${reward} 🪙 — thanks for watching!`);
+  }
+  refreshAdButtons();
+}
+async function watchAd() {
+  if (adBusy || !adsEnabled()) return;
+  if (adCapLeft() <= 0) { toast('Daily ad limit reached — back tomorrow!'); return; }
+  adBusy = true; sClick();
+  try {
+    await loadAdSdk();
+    $('applixir-overlay').classList.remove('hidden');
+    const GOOD = new Set(['ad-watched', 'ad-rewarded', 'complete', 'completed']);
+    const DONE = new Set(['ad-rejected', 'ad-interrupted', 'ads-unavailable', 'no-zoneId', 'network-error', 'ad-blocker', 'sys-closing', 'closed', 'error', 'skipped']);
+    let rewarded = false, settled = false;
+    const status = st => {
+      const s = String(st).toLowerCase();
+      if (GOOD.has(s)) rewarded = true;
+      if ((GOOD.has(s) || DONE.has(s)) && !settled) {
+        if (s === 'sys-closing' || s === 'closed' || GOOD.has(s) || DONE.has(s)) { settled = true; finishAd(rewarded); }
+      }
+    };
+    if (window.invokeApplixirVideoUnit) {
+      window.invokeApplixirVideoUnit({
+        zoneId: CONFIG.ads.zone, accountId: CONFIG.ads.account, gameId: CONFIG.ads.key,
+        adStatusCb: status, adErrorCb: () => { if (!settled) { settled = true; finishAd(false); toast('No ad available right now'); } },
+      });
+    } else if (window.initializeAndOpenPlayer) {
+      window.initializeAndOpenPlayer({
+        apiKey: CONFIG.ads.key, injectionElementId: 'applixir-root',
+        adStatusCallbackFn: status,
+        adErrorCallbackFn: () => { if (!settled) { settled = true; finishAd(false); toast('No ad available right now'); } },
+      });
+    } else { throw new Error('no sdk entrypoint'); }
+    // safety valve: never leave the overlay stuck
+    setTimeout(() => { if (!settled) { settled = true; finishAd(rewarded); } }, 120000);
+  } catch (e) {
+    finishAd(false); toast('No ad available right now');
+  }
+}
+$('adBtnMenu').onclick = watchAd;
+$('adBtnDeath').onclick = watchAd;
+
 /* ================= boot ================= */
 (async function boot() {
   try {
@@ -716,6 +797,7 @@ async function loadPrizes() {
   if (spinAvailable()) $('spinBadge').classList.remove('hidden');
   $('modeHint').textContent = CONFIG.stripeMode === 'live' ? '' :
     CONFIG.stripeMode === 'test' ? 'Store: Stripe test mode' : 'Store: demo mode (no Stripe keys yet)';
+  refreshAdButtons();
   connect();
   loadPrizes();
 })();
