@@ -11,6 +11,10 @@ function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeig
 addEventListener('resize', resize); resize();
 
 let CONFIG = { skins: {}, coinPacks: {}, reviveCost: 60, boostPackCost: 120, stripeMode: 'simulated' };
+/* Apple App Store guideline 3.1.1: inside the native iOS shell, digital goods must go
+   through Apple In-App Purchase — never Stripe. When running under Capacitor we hide
+   the Stripe coin packs and defer to a StoreKit bridge (window.VV_IAP) if present. */
+const NATIVE_SHELL = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 let WORLD_SIZE = 4200;
 
 const save = {
@@ -588,12 +592,21 @@ function buildStore() {
   // coin packs
   const packs = $('packRows'); packs.innerHTML =
     '<div style="margin:4px 0 6px;font-size:11px;letter-spacing:2px;color:var(--dim)">COIN PACKS</div>';
-  for (const [key, p] of Object.entries(CONFIG.coinPacks)) {
-    const row = document.createElement('div'); row.className = 'shoprow';
-    row.innerHTML = `<div><div class="nm">🪙 ${p.name}</div><div class="sub">Instant delivery</div></div>`;
-    const b = document.createElement('button'); b.className = 'btn gold'; b.textContent = '$' + (p.usd / 100).toFixed(2);
-    b.onclick = () => buyPack(key);
-    row.appendChild(b); packs.appendChild(row);
+  if (NATIVE_SHELL) {
+    // iOS shell: Stripe stays hidden. StoreKit bridge (VV_IAP) renders Apple IAP rows instead.
+    if (window.VV_IAP && window.VV_IAP.buildRows) {
+      window.VV_IAP.buildRows(packs, coins => { save.coins = save.coins + coins; sBuy(); toast(`+${coins} 🪙!`); });
+    } else {
+      packs.innerHTML += '<div class="sub" style="margin:6px 0">Coin packs are coming soon on the App Store. Earn coins by playing!</div>';
+    }
+  } else {
+    for (const [key, p] of Object.entries(CONFIG.coinPacks)) {
+      const row = document.createElement('div'); row.className = 'shoprow';
+      row.innerHTML = `<div><div class="nm">🪙 ${p.name}</div><div class="sub">Instant delivery</div></div>`;
+      const b = document.createElement('button'); b.className = 'btn gold'; b.textContent = '$' + (p.usd / 100).toFixed(2);
+      b.onclick = () => buyPack(key);
+      row.appendChild(b); packs.appendChild(row);
+    }
   }
   // boost
   $('boostBuyBtn').textContent = CONFIG.boostPackCost + ' 🪙';
@@ -624,9 +637,10 @@ function buildStore() {
     row.appendChild(d);
   }
   const mode = CONFIG.stripeMode;
-  $('storeModeHint').textContent = mode === 'live' ? 'Payments secured by Stripe.' :
-    mode === 'test' ? 'Stripe TEST MODE — use card 4242 4242 4242 4242.' :
-      'Demo mode — purchases are simulated free until Stripe keys are added.';
+  $('storeModeHint').textContent = NATIVE_SHELL ? '' :
+    mode === 'live' ? 'Payments secured by Stripe.' :
+      mode === 'test' ? 'Stripe TEST MODE — use card 4242 4242 4242 4242.' :
+        'Demo mode — purchases are simulated free until Stripe keys are added.';
 }
 async function buyPack(key) {
   sClick();
