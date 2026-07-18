@@ -45,6 +45,8 @@
   #hudScore { left: 18px; bottom: 16px; font-size: 22px; font-weight: 800; letter-spacing: 1px;
     text-shadow: 0 0 12px var(--neon); }
   #hudScore small { display:block; font-size: 11px; font-weight: 400; color: var(--dim); letter-spacing: 2px; }
+  .ruleslink { display: block; margin-top: 10px; font-size: 11px; color: var(--dim); text-decoration: none; letter-spacing: 1px; text-align: center; }
+  .ruleslink:hover { color: var(--neon); }
   #boostBtn { position: fixed; right: 22px; bottom: 22px; z-index: 6; width: 84px; height: 84px;
     border-radius: 50%; border: 2px solid var(--neon); background: rgba(10,255,157,.12);
     color: var(--neon); font-size: 34px; display: none; align-items: center; justify-content: center;
@@ -192,6 +194,7 @@
       <button class="btn pink" id="spinOpenBtn" onclick="openSpin()" style="position:relative">🎡 DAILY VOLT SPIN<span class="spinready hidden" id="spinBadge">FREE!</span></button>
     </div>
     <div class="modehint" id="modeHint"></div>
+    <a class="ruleslink" href="/rules.html">📜 Official Rules — skill-based monthly prizes · No purchase necessary</a>
   </div>
 </div>
 
@@ -259,6 +262,7 @@
     <table class="prize-table"><thead><tr><th>#</th><th>PLAYER</th><th>MINUTES</th><th>SHARE</th></tr></thead>
       <tbody id="prizeRows"></tbody></table>
     <div class="modehint">Playtime resets on the 1st of each month. Top 10 split the pool. Keep your name consistent — that's your entry.</div>
+    <a class="ruleslink" href="/rules.html">📜 Official Rules · No purchase necessary · Apple is not a sponsor</a>
   </div>
 </div>
 
